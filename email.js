@@ -26,18 +26,18 @@ function getMessage(emailParams) {
   return {
     to: emailParams.toEmail,
     from: 'jviitamo@gmail.com',
-    subject: 'We have got your order, you will receive it soon',
-    text: `Hey ${emailParams.name}, we have received your order ${emailParams.orderNr}. We will ship it soon`,
-    html: getOrderConfirmationEmailHtml(emailParams.name, emailParams.orderNr),
+    subject: emailParams.name,
+    text: emailParams.content,
+    html: getOrderConfirmationEmailHtml(emailParams.name, emailParams.content),
   };
 }
 
 async function sendOrderConfirmation(emailParams) {
   try {
     await sendGridMail.send(getMessage(emailParams));
-    return  { message: `Order confirmation email sent successfully for orderNr: ${emailParams.orderNr}`};
+    return  { message: `Order confirmation email sent successfully for name: ${emailParams.name}`};
   } catch (error) {
-    const message = `Error sending order confirmation email or orderNr: ${emailParams.orderNr}`;
+    const message = `Error sending order confirmation email or name: ${emailParams.name}`;
     console.error(message);
     console.error(error);
     if (error.response) {
