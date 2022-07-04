@@ -1,5 +1,6 @@
 const sendGridMail = require('@sendgrid/mail');
 require('dotenv').config()
+const { Pool } = require("pg");
 sendGridMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 function getOrderConfirmationEmailHtml(customerName, orderNr) {
@@ -22,6 +23,32 @@ function getOrderConfirmationEmailHtml(customerName, orderNr) {
 </tr></table></td></tr></table></td></tr></table></td></tr></table></td></tr></table></div></body></html>`;
 }
 
+const credentials = {
+  user: process.env.user,
+  host: process.env.host,
+  database: process.env.database,
+  password: process.env.password,
+  port: process.env.port,
+};
+
+
+async function getMails() {
+  const pool = new Pool(credentials);
+  const emails = await pool.query("SELECT * FROM email");
+  await pool.end();
+  console.log(emails.rows)
+  return emails.rows;
+}
+
+async function insertMail(mail) {
+  const pool = new Pool(credentials);
+  const text = `INSERT INTO email (id, name, content, email) VALUES (default, $1, $2, $3)`;
+  const values = [mail.name, mail.content, mail.toEmail];
+  response = await pool.query(text, values);
+  await pool.end();
+  return values;
+}
+
 function getMessage(emailParams) {
   return {
     to: emailParams.toEmail,
@@ -35,6 +62,7 @@ function getMessage(emailParams) {
 async function sendOrderConfirmation(emailParams) {
   try {
     await sendGridMail.send(getMessage(emailParams));
+    insertMail(emailParams)
     return  { message: `Order confirmation email sent successfully for name: ${emailParams.name}`};
   } catch (error) {
     const message = `Error sending order confirmation email or name: ${emailParams.name}`;
@@ -48,5 +76,6 @@ async function sendOrderConfirmation(emailParams) {
 }
 
 module.exports = {
-  sendOrderConfirmation
+  sendOrderConfirmation,
+  getMails
 }

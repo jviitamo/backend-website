@@ -21,6 +21,14 @@ app.post('/api/email/order-confirmation', async (req, res, next) => {
   }
 });
 
+app.get('/api/email/mails', async (req, res, next) => {
+  try {
+    res.json(await email.getMails());
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   console.error(err.message, err.stack);
